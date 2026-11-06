@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TechNova Store — AI sotuvchi demo</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232dd4a7'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='%2304231b' font-family='Arial' font-weight='bold'>A</text></svg>">
+  <style>
+    .shop { min-height: 100vh; background: radial-gradient(900px 500px at 85% 0%, rgba(91,157,255,.09), transparent 60%), var(--bg); }
+    .shop-nav { max-width: 1120px; margin: 0 auto; padding: 22px 26px; display: flex; align-items: center; gap: 26px; border-bottom: 1px solid var(--line-soft); }
+    .shop-nav .links { display: flex; gap: 22px; color: var(--muted); font-size: 13.5px; margin-left: 10px; }
+    .shop-nav .links a:hover { color: var(--text); }
+    .shop-nav .right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+    .shop-hero { max-width: 1120px; margin: 0 auto; padding: 52px 26px 30px; display: grid; grid-template-columns: 1.15fr .85fr; gap: 38px; align-items: center; }
+    .shop-hero h1 { font-size: clamp(32px, 4.2vw, 50px); line-height: 1.08; letter-spacing: -1.5px; margin: 14px 0 16px; }
+    .shop-hero h1 span { color: var(--accent); }
+    .shop-hero p { color: var(--muted); font-size: 15.5px; line-height: 1.7; max-width: 520px; }
+    .shop-hero .promo { background: linear-gradient(120deg, rgba(45,212,167,.12), rgba(91,157,255,.08)), var(--panel); border: 1px solid rgba(45,212,167,.22); border-radius: 20px; padding: 24px; }
+    .shop-hero .promo h3 { margin: 0 0 8px; font-size: 17px; }
+    .shop-hero .promo p { font-size: 13px; margin: 0 0 16px; }
+    .shop-hero .promo .line { display: flex; justify-content: space-between; font-size: 13px; padding: 7px 0; border-bottom: 1px dashed var(--line); color: var(--muted); }
+    .shop-hero .promo .line:last-of-type { border-bottom: none; }
+    .shop-hero .promo .line b { color: var(--text); font-weight: 600; }
+    .shop-section { max-width: 1120px; margin: 0 auto; padding: 24px 26px 70px; }
+    .shop-section h2 { font-size: 22px; letter-spacing: -.4px; margin: 0 0 18px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+    .prod { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 16px; padding: 18px; transition: .2s; }
+    .prod:hover { border-color: #2b3f58; transform: translateY(-2px); }
+    .prod .thumb { height: 110px; border-radius: 12px; background: linear-gradient(145deg, #172435, #0f1926); display: grid; place-items: center; font-size: 40px; margin-bottom: 14px; }
+    .prod h3 { margin: 0 0 4px; font-size: 14.5px; }
+    .prod .cat { color: var(--muted-2); font-size: 11.5px; margin-bottom: 10px; }
+    .prod .price { color: var(--accent); font-weight: 700; font-size: 14.5px; }
+    .prod .old { color: var(--muted-2); text-decoration: line-through; font-size: 11.5px; margin-left: 6px; font-weight: 400; }
+    .prod .foot { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; }
+    .ai-hint { position: fixed; right: 24px; bottom: 100px; background: var(--panel-2); border: 1px solid rgba(45,212,167,.35); border-radius: 14px; padding: 12px 14px; font-size: 12.5px; color: var(--text); box-shadow: var(--shadow); max-width: 250px; animation: floaty 2.6s ease-in-out infinite; z-index: 5; }
+    .ai-hint span { color: var(--accent); font-weight: 600; }
+    .ai-hint em { display: block; color: var(--muted); font-style: normal; margin-top: 4px; }
+    @keyframes floaty { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    .demo-bar { max-width: 1120px; margin: 0 auto; padding: 0 26px 26px; }
+    .demo-bar .inner { border: 1px dashed var(--line); border-radius: 14px; padding: 14px 18px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; }
+    .demo-bar b { color: var(--text); }
+    @media (max-width: 860px) { .shop-hero { grid-template-columns: 1fr; } .shop-nav .links { display: none; } .ai-hint { display: none; } }
+  </style>
+</head>
+<body>
+<div class="shop">
+  <nav class="shop-nav">
+    <a class="logo-row" href="/demo">
+      <span class="logo-mark" style="background:linear-gradient(135deg,#5b9dff,#2dd4a7)">T</span>
+      <span>TechNova Store</span>
+    </a>
+    <div class="links">
+      <a href="#products">Noutbuklar</a>
+      <a href="#products">Telefonlar</a>
+      <a href="#products">Aksessuarlar</a>
+      <a href="#promo">Aksiyalar</a>
+    </div>
+    <div class="right">
+      <a class="btn sm" href="/login">Dashboard</a>
+      <span class="badge">Demo</span>
+    </div>
+  </nav>
+
+  <header class="shop-hero">
+    <div>
+      <span class="badge amber">NOVA10 promokodi · 10% chegirma</span>
+      <h1>Texnika xarid qilish endi <span>oson</span>.</h1>
+      <p>Eng yangi noutbuklar, telefonlar va aksessuarlar. Toshkent bo'ylab 24 soatda bepul yetkazib berish, 12 oygacha 0% bo'lib to'lash.</p>
+      <div class="row" style="margin-top:24px">
+        <a class="btn primary" href="#products">Katalogni ko'rish</a>
+        <button class="btn" type="button" onclick="askAI()">AI yordamchidan so'rash</button>
+      </div>
+      <p class="small muted" style="margin-top:14px">O'ng pastdagi yashil tugma orqali AI sotuvchi bilan suhbatlashing.</p>
+    </div>
+    <aside class="promo" id="promo">
+      <h3>Nega TechNova?</h3>
+      <p>Rasmiy kafolat, tez yetkazib berish va aqlli yordamchi.</p>
+      <div class="line"><span>Yetkazib berish</span><b>24 soat · bepul</b></div>
+      <div class="line"><span>Kafolat</span><b>12 oy</b></div>
+      <div class="line"><span>Bo'lib to'lash</span><b>0% · 12 oy</b></div>
+      <div class="line"><span>Qaytarish</span><b>14 kun</b></div>
+      <div class="line"><span>Qo'llab-quvvatlash</span><b>24/7 AI</b></div>
+    </aside>
+  </header>
+
+  <section class="shop-section" id="products">
+    <h2>Ommabop mahsulotlar</h2>
+    <div class="cards" id="product-cards"></div>
+  </section>
+
+  <div class="demo-bar">
+    <div class="inner">
+      <span>Bu sahifa <b>AI Sales Agent</b> demo widgetini ko'rsatadi.</span>
+      <span>Dashboard hisobi: <b>demo@aisales.uz</b> / <b>Demo12345</b></span>
+      <a class="btn sm primary" href="/login" style="margin-left:auto">O'z panelini ochish</a>
+    </div>
+  </div>
+</div>
+
+<div class="ai-hint">Savolingiz bormi? <span>AI yordamchi</span> onlayn<em>O'ng pastdagi tugmani bosing →</em></div>
+
+<script>
+  var DEMO_PRODUCTS = [
+    ["MacBook Air M3 13\"", "Apple", "💻", 15990000, 17500000],
+    ["Lenovo IdeaPad Slim 5", "Lenovo", "💻", 8490000, 9200000],
+    ["ASUS ROG Strix G16", "ASUS", "🎮", 21500000, null],
+    ["iPhone 15 Pro 128 GB", "Apple", "📱", 14200000, 15200000],
+    ["Samsung Galaxy S24", "Samsung", "📱", 11900000, null],
+    ["Xiaomi 14", "Xiaomi", "📱", 9800000, 10400000],
+    ["AirPods Pro 2 (USB-C)", "Apple", "🎧", 2750000, null],
+    ["Sony WH-1000XM5", "Sony", "🎧", 4200000, 4600000],
+    ["iPad Air M2 11\"", "Apple", "📓", 9900000, null],
+    ["Apple Watch Series 9", "Apple", "⌚", 5400000, null],
+    ["Samsung Galaxy Watch 6", "Samsung", "⌚", 3100000, 3500000],
+    ["Logitech MX Master 3S", "Logitech", "🖱️", 1250000, null]
+  ];
+  function money(value) {
+    return new Intl.NumberFormat("ru-RU").format(value) + " so'm";
+  }
+  document.getElementById("product-cards").innerHTML = DEMO_PRODUCTS.map(function (product) {
+    return '<article class="prod"><div class="thumb">' + product[2] + "</div>" +
+      "<h3>" + product[0] + '</h3><div class="cat">' + product[1] + "</div>" +
+      '<div class="price">' + money(product[3]) +
+      (product[4] ? '<span class="old">' + money(product[4]) + "</span>" : "") + "</div>" +
+      '<div class="foot"><span class="badge">Sotuvda</span>' +
+      '<button class="btn sm" type="button" data-ask="' + product[0] + '">So\'rash</button></div></article>';
+  }).join("");
+  function widgetApi() {
+    var api = window.AISalesWidget || {};
+    var keys = Object.keys(api);
+    return keys.length ? api[keys[0]] : null;
+  }
+  function askAI(text) {
+    var api = widgetApi();
+    if (api) {
+      if (text) api.prefill(text);
+      else api.open();
+      return;
+    }
+    setTimeout(function () { askAI(text); }, 250);
+  }
+  document.getElementById("product-cards").addEventListener("click", function (event) {
+    var button = event.target.closest("[data-ask]");
+    if (!button) return;
+    askAI(button.getAttribute("data-ask") + " haqida ma'lumot bering");
+  });
+
+  fetch("/api/v1/public/demo")
+    .then(function (response) { return response.ok ? response.json() : null; })
+    .then(function (data) {
+      var script = document.createElement("script");
+      script.src = "/static/js/widget.js";
+      script.async = true;
+      script.setAttribute("data-ai-widget", (data && data.public_key) || "demo-store-widget");
+      document.body.appendChild(script);
+    })
+    .catch(function () {
+      var script = document.createElement("script");
+      script.src = "/static/js/widget.js";
+      script.async = true;
+      script.setAttribute("data-ai-widget", "demo-store-widget");
+      document.body.appendChild(script);
+    });
+</script>
+</body>
+</html>

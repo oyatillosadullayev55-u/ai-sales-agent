@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kirish — AI Sales Agent</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232dd4a7'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='%2304231b' font-family='Arial' font-weight='bold'>A</text></svg>">
+</head>
+<body>
+<div class="auth-wrap">
+  <aside class="auth-side">
+    <a class="logo-row" href="/">
+      <span class="logo-mark">A</span>
+      <span>AI Sales Agent</span>
+    </a>
+    <div>
+      <h1>Sotuvchi hech qachon uxlamaydi.</h1>
+      <p>Telegram va sayt suhbatlarini bitta joyda boshqaring. AI bilimlar bazangizdan javob beradi, buyurtma qabul qiladi va operatorga topshiradi.</p>
+      <div class="stats">
+        <div><strong>24/7</strong><span>javob berish</span></div>
+        <div><strong>2 til</strong><span>o'zbek / rus</span></div>
+        <div><strong>38%</strong><span>konversiya o'sishi</span></div>
+      </div>
+    </div>
+    <div class="quote">"Har kuni 200 ga yaqin savol keladi. AI ularning 80 foizini o'zi hal qiladi, qolganini operatorga o'tkazadi. Jamoamiz endi faqat sotuvga vaqt ajratadi."<br><br>— TechNova Store, Toshkent</div>
+  </aside>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="tabs">
+        <button type="button" data-tab="login" class="active">Kirish</button>
+        <button type="button" data-tab="register">Ro'yxatdan o'tish</button>
+      </div>
+
+      <section id="login-view">
+        <h2>Xush kelibsiz</h2>
+        <p class="sub">Hisobingizga kiring va boshqaruv panelini oching.</p>
+        <form class="auth-form" id="login-form">
+          <div class="form-error hidden" data-error></div>
+          <div class="field">
+            <label for="login-email">Email</label>
+            <input class="input" id="login-email" type="email" autocomplete="email" placeholder="siz@kompaniya.uz" required>
+          </div>
+          <div class="field">
+            <label for="login-password">Parol</label>
+            <input class="input" id="login-password" type="password" autocomplete="current-password" placeholder="••••••••" required>
+          </div>
+          <button class="btn primary block" type="submit">Kirish</button>
+        </form>
+        <div class="row" style="justify-content:space-between;margin-top:14px">
+          <button class="btn ghost sm" type="button" data-forgot style="padding-left:0;color:var(--muted)">Parolni tiklash</button>
+          <a class="small" href="/demo" style="color:var(--accent)">Demo chat →</a>
+        </div>
+        <div class="demo-creds">
+          Demo hisob: <b>demo@aisales.uz</b> / <b>Demo12345</b><br>
+          Super admin: <b>admin@aisales.uz</b> / <b>Admin12345</b>
+        </div>
+      </section>
+
+      <section id="register-view" class="hidden">
+        <h2>Kompaniyani qo'shing</h2>
+        <p class="sub">Bepul tarifda boshlang. Kartadan ma'lumot talab qilinmaydi.</p>
+        <form class="auth-form" id="register-form">
+          <div class="form-error hidden" data-error></div>
+          <div class="field">
+            <label for="reg-org">Kompaniya nomi</label>
+            <input class="input" id="reg-org" placeholder="Masalan: Nova Electronics" required minlength="2">
+          </div>
+          <div class="field">
+            <label for="reg-name">Ismingiz</label>
+            <input class="input" id="reg-name" placeholder="Aziz Karimov" autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="reg-email">Email</label>
+            <input class="input" id="reg-email" type="email" autocomplete="email" placeholder="siz@kompaniya.uz" required>
+          </div>
+          <div class="field">
+            <label for="reg-password">Parol (kamida 8 belgi)</label>
+            <input class="input" id="reg-password" type="password" autocomplete="new-password" minlength="8" required>
+          </div>
+          <button class="btn primary block" type="submit">Hisob yaratish</button>
+        </form>
+        <div class="auth-foot">Ro'yxatdan o'tish bilan <a href="/">foydalanish shartlari</a>ga rozilik bildirasiz.</div>
+      </section>
+
+      <section id="forgot-view" class="hidden">
+        <h2>Parolni tiklash</h2>
+        <p class="sub">Emailingizni kiriting — tiklash kodini olasiz.</p>
+        <form class="auth-form" id="forgot-form">
+          <div class="form-error hidden" data-error></div>
+          <div class="field">
+            <label for="forgot-email">Email</label>
+            <input class="input" id="forgot-email" type="email" placeholder="siz@kompaniya.uz" required>
+          </div>
+          <button class="btn primary block" type="submit">Kod olish</button>
+        </form>
+        <form class="auth-form hidden" id="reset-form" style="margin-top:18px">
+          <div class="field">
+            <label for="reset-token">Tiklash kodi</label>
+            <input class="input" id="reset-token" placeholder="Kodni shu yerga qo'ying" required>
+          </div>
+          <div class="field">
+            <label for="reset-password">Yangi parol</label>
+            <input class="input" id="reset-password" type="password" minlength="8" required>
+          </div>
+          <button class="btn block" type="submit">Parolni yangilash</button>
+        </form>
+        <div class="auth-foot"><button class="btn ghost sm" type="button" data-back>← Kirishga qaytish</button></div>
+      </section>
+
+      <div class="auth-foot"><a href="/">← Bosh sahifaga</a></div>
+    </div>
+  </main>
+</div>
+<script src="/static/js/auth.js" defer></script>
+</body>
+</html>

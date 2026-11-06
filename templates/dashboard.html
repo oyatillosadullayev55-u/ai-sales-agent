@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="uz">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard — AI Sales Agent</title>
+  <link rel="stylesheet" href="/static/css/app.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='24' fill='%232dd4a7'/><text x='50' y='68' font-size='58' text-anchor='middle' fill='%2304231b' font-family='Arial' font-weight='bold'>A</text></svg>">
+</head>
+<body>
+<div class="shell">
+  <aside class="sidebar" id="sidebar">
+    <div class="logo-row">
+      <span class="logo-mark">A</span>
+      <span>AI Sales Agent</span>
+    </div>
+
+    <nav class="nav" id="main-nav">
+      <div class="nav-label">Ish maydoni</div>
+      <button data-view="overview" class="active" data-icon="grid">Umumiy ko'rinish</button>
+      <button data-view="conversations" data-icon="chat">Suhbatlar <span class="nav-badge" id="handoff-badge" hidden>0</span></button>
+      <button data-view="analytics" data-icon="chart">Analitika</button>
+
+      <div class="nav-label">Katalog</div>
+      <button data-view="products" data-icon="box">Mahsulotlar</button>
+      <button data-view="orders" data-icon="cart">Buyurtmalar</button>
+
+      <div class="nav-label">Bilim va AI</div>
+      <button data-view="knowledge" data-icon="book">Bilimlar bazasi</button>
+      <button data-view="settings" data-icon="bot">AI agent sozlamalari</button>
+
+      <div class="nav-label">Boshqaruv</div>
+      <button data-view="integrations" data-icon="plug">Integratsiyalar</button>
+      <button data-view="team" data-icon="users">Jamoa</button>
+      <button data-view="billing" data-icon="card">Tarif va to'lovlar</button>
+      <button data-view="platform" data-icon="shield" id="platform-nav" class="hidden">Platforma (Super Admin)</button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="user-cell">
+        <div class="user-avatar" id="user-avatar">A</div>
+        <div class="meta">
+          <strong id="user-name">Yuklanmoqda...</strong>
+          <span id="user-email"></span>
+        </div>
+        <button class="icon-btn" id="logout-btn" title="Chiqish" aria-label="Chiqish">⎋</button>
+      </div>
+      <div class="field" style="margin-top:10px">
+        <select class="select" id="org-switcher" aria-label="Tashkilot" style="font-size:12px;padding:8px 10px"></select>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="row" style="gap:12px">
+        <button class="btn sm menu-btn" id="menu-btn" aria-label="Menyu">☰</button>
+        <div>
+          <h1 id="page-title">Umumiy ko'rinish</h1>
+          <div class="crumb" id="page-crumb">Ish maydoni</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <a class="btn sm ghost" href="/demo" target="_blank" rel="noopener">Demo widget ↗</a>
+        <button class="btn sm" id="refresh-btn" title="Yangilash">↻ Yangilash</button>
+      </div>
+    </header>
+
+    <main class="content" id="view"></main>
+  </div>
+</div>
+
+<div id="modal-root"></div>
+<div class="toast-stack" id="toast-stack"></div>
+<script src="/static/js/dashboard.js" defer></script>
+</body>
+</html>
