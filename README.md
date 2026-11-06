@@ -20,6 +20,8 @@ FastAPI · SQLAlchemy 2 (async) · SQLite/aiosqlite · Pydantic v2 · JWT + bcry
 
 LLM kaliti bo'lmasa ham tizim to'liq ishlaydi: deterministik offline agent va lokal 384-o'lchamli hashing embeddinglar ishlatiladi. `LLM_API_KEY` qo'shilsa, OpenAI-mos chat + tool calling va `text-embedding-3-small` yoqiladi.
 
+To'liq manba kodi bitta hujjatda: [`PROJECT_CODE.md`](PROJECT_CODE.md) — barcha backend, frontend va test fayllari.
+
 ## Tez boshlash (Windows)
 
 ```bash
