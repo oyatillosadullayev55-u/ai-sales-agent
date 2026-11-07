@@ -47,12 +47,19 @@ async def get_telegram(
         )
     ).scalar_one_or_none()
     if integration is None:
-        return {"connected": False, "bot_username": "", "webhook_url": "", "active": False}
+        return {
+            "connected": False,
+            "bot_username": "",
+            "webhook_url": "",
+            "active": False,
+            "mode": settings.telegram_mode,
+        }
     return {
         "connected": True,
         "bot_username": integration.bot_username,
         "webhook_url": telegram.webhook_url(integration.webhook_secret),
         "active": integration.active,
+        "mode": settings.telegram_mode,
     }
 
 
@@ -96,6 +103,7 @@ async def connect_telegram(
         "bot_username": integration.bot_username,
         "webhook_url": telegram.webhook_url(integration.webhook_secret),
         "active": True,
+        "mode": settings.telegram_mode,
     }
 
 
@@ -110,6 +118,11 @@ async def set_telegram_webhook(
     ).scalar_one_or_none()
     if integration is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Telegram bot ulanmagan")
+    if settings.telegram_polling_enabled:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Long polling rejimi yoqilgan — webhook o'rnatish shart emas.",
+        )
     if not settings.public_base_url.startswith("https://"):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,

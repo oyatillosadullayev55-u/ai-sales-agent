@@ -1,7 +1,7 @@
 # AI Sales Agent — to'liq loyiha kodi
 Ushbu hujjat loyihadagi barcha asosiy manba fayllarini bitta Markdown hujjatga jamlaydi.
-Jami qatorlar: **9911**
-Fayllar soni: **57**
+Jami qatorlar: **10182**
+Fayllar soni: **59**
 
 ## `.env.example`
 
@@ -17,9 +17,11 @@ ACCESS_TOKEN_MINUTES=30
 REFRESH_TOKEN_DAYS=14
 
 DATABASE_URL=sqlite+aiosqlite:///./data/app.db
-# Telegram webhook va widget kodi shu manzildan olinadi. https bo'lishi kerak
-# (masalan ngrok: https://xxxx.ngrok-free.app).
+# Telegram webhook va widget kodi shu manzildan olinadi. https bo'lsa webhook,
+# http bo'lsa long polling avtomatik ishlaydi (masalan ngrok: https://xxxx.ngrok-free.app).
 PUBLIC_BASE_URL=http://localhost:8000
+# Majburan rejim tanlash: true = polling, false = webhook. Bo'sh = avtomatik.
+# TELEGRAM_POLLING=
 CORS_ORIGINS=*
 
 # OpenAI-compatible LLM (ixtiyoriy). Bo'sh bo'lsa deterministik offline agent
@@ -35,6 +37,173 @@ SUPER_ADMIN_EMAIL=admin@aisales.uz
 SUPER_ADMIN_PASSWORD=Admin12345
 RATE_LIMIT_PER_MINUTE=120
 MAX_UPLOAD_MB=15
+````
+
+## `README.md`
+
+````markdown
+# AI Sales Agent
+
+O'zbekiston bozori uchun ko'p tashkilotli (multi-tenant) AI sotuv platformasi: Telegram bot, sayt chat widgeti va to'liq SaaS boshqaruv paneli. AI hujjatlar (RAG) va mahsulot bazasi asosida javob beradi, buyurtma qabul qiladi, operatorga uzatadi.
+
+## Imkoniyatlar
+
+- **Autentifikatsiya** — email/parol, access + refresh token, parol tiklash, rollar (Super Admin, Owner, Manager, Operator).
+- **Tashkilotlar** — har bir ma'lumot `org_id` bilan izolyatsiya qilinadi; boshqa tashkilot resursi `404` qaytaradi.
+- **Bilim bazasi** — PDF, DOCX, TXT, CSV, MD yuklash, bo'limlarga asoslangan chunking, embedding, semantik + leksik qidiruv, manba iqtiboslari, qayta indekslash.
+- **AI agent** — ism/persona, UZ/RU/EN, byudjet va kategoriya bo'yicha mahsulot tanlash, narx/ombor tekshiruvi, bosqichma-bosqich buyurtma, operatorga handoff, noto'g'ri javobni aniqlash.
+- **Telegram** — token bilan ulash, webhook (secret header + dedupe), operator rejimi.
+- **Sayt widgeti** — Shadow DOM, rang/sarlavha sozlash, anonim tashrif buyuruvchi tarixi, `data-ai-widget` orqali embed.
+- **Mahsulot va buyurtmalar** — CRUD, qoldiq, buyurtma raqami, statuslar, bekor qilganda qoldiqni tiklash.
+- **Analitika** — suhbat, xabar, buyurtma, tushum, konversiya, kanallar va top mahsulotlar.
+- **Billing** — Starter / Pro / Business, oylik to'lov tarixi, limitlar (suhbat, hujjat, xodim).
+
+## Texnologiyalar
+
+FastAPI · SQLAlchemy 2 (async) · SQLite/aiosqlite · Pydantic v2 · JWT + bcrypt · Fernet · pypdf/python-docx · NumPy · vanilla JS SPA · pytest
+
+LLM kaliti bo'lmasa ham tizim to'liq ishlaydi: deterministik offline agent va lokal 384-o'lchamli hashing embeddinglar ishlatiladi. `LLM_API_KEY` qo'shilsa, OpenAI-mos chat + tool calling va `text-embedding-3-small` yoqiladi.
+
+To'liq manba kodi bitta hujjatda: [`PROJECT_CODE.md`](PROJECT_CODE.md) — barcha backend, frontend va test fayllari.
+
+## Tez boshlash (Windows)
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+copy .env.example .env
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Linux/macOS:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+```
+
+Birinchi ishga tushishda `data/app.db` yaratiladi va demo ma'lumotlar seed qilinadi.
+
+| Sahifa | Manzil |
+| --- | --- |
+| Landing | http://127.0.0.1:8000/ |
+| Kirish / ro'yxatdan o'tish | http://127.0.0.1:8000/login |
+| Boshqaruv paneli | http://127.0.0.1:8000/dashboard |
+| Demo do'kon + widget | http://127.0.0.1:8000/demo |
+| API hujjati | http://127.0.0.1:8000/api/docs |
+
+### Demo hisoblar
+
+| Rol | Email | Parol |
+| --- | --- | --- |
+| Owner (TechNova Store) | `demo@aisales.uz` | `Demo12345` |
+| Super Admin | `admin@aisales.uz` | `Admin12345` |
+
+Demo widget kaliti: `demo-store-widget`.
+
+## Sozlamalar (`.env`)
+
+| O'zgaruvchi | Tavsif |
+| --- | --- |
+| `SECRET_KEY` | JWT va token shifrlash kaliti (productionda ≥32 belgi) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./data/app.db` yoki PostgreSQL URL |
+| `PUBLIC_BASE_URL` | Widget kodi va Telegram webhook uchun tashqi manzil (`https://...`) |
+| `TELEGRAM_POLLING` | Bo'sh bo'lsa avtomatik: http manzilda polling, https manzilda webhook |
+| `LLM_API_KEY` | Bo'sh bo'lsa offline agent ishlaydi |
+| `LLM_BASE_URL`, `LLM_MODEL` | OpenAI-mos provayder |
+| `SEED_DEMO` | `false` qilinsa demo ma'lumot yozilmaydi |
+| `INGEST_SYNC` | `false` bo'lsa hujjat fonda indekslanadi |
+| `RATE_LIMIT_PER_MINUTE` | Public API uchun daqiqalik limit |
+| `MAX_UPLOAD_MB` | Fayl hajmi chegarasi |
+
+## Telegram botni ulash
+
+1. [@BotFather](https://t.me/BotFather) orqali `/newbot` bilan bot yarating va tokenni oling.
+2. Dashboard → **Integratsiyalar** → Telegram bo'limiga tokenni kiriting.
+3. Token ulangach bot avtomatik ishga tushadi:
+   - **Lokal (default)** — `PUBLIC_BASE_URL` http bo'lsa long polling yoqiladi; ngrok shart emas, `uvicorn` ishlab turishi kifoya.
+   - **Production** — `PUBLIC_BASE_URL=https://domen` bo'lsa webhook rejimi ishlatiladi; **Webhookni o'rnatish** tugmasini bosing.
+4. Telegramda botga `/start` yozib tekshiring.
+
+Rejimni majburan tanlash: `TELEGRAM_POLLING=true` (polling) yoki `false` (webhook).
+
+Webhook: `POST /api/v1/telegram/webhook/{secret}`. `X-Telegram-Bot-Api-Secret-Token` noto'g'ri bo'lsa `403`, takroriy `update_id` e'tiborsiz qoldiriladi. Polling rejimida `getUpdates` ishlatiladi, webhook avtomatik o'chiriladi.
+
+## Widgetni saytga qo'shish
+
+Dashboard → **Integratsiyalar** → Widget bo'limidan kodni nusxalang:
+
+```html
+<script src="https://sizning-domen/static/js/widget.js" data-ai-widget="PUBLIC_KEY" defer></script>
+```
+
+Widget Shadow DOM ichida ishlaydi, sayt CSS'i bilan to'qnashmaydi. Dasturiy boshqaruv:
+
+```js
+AISalesWidget["PUBLIC_KEY"].open();
+AISalesWidget["PUBLIC_KEY"].prefill("Noutbuk kerak");
+```
+
+## Testlar
+
+```bash
+.venv\Scripts\python.exe -m pytest -q
+```
+
+18 ta integratsion test alohida `data/test_app.db` bazasida ishlaydi (demo baza tegmaydi): autentifikatsiya/refresh, parol tiklash, RBAC, tashkilotlar izolyatsiyasi, bilim bazasi yuklash/qidirish/o'chirish, offline agent (byudjet, narx, buyurtma, handoff), widget, Telegram webhook/polling va billing limitlari.
+
+## Loyiha tuzilishi
+
+```
+app/
+  main.py            # FastAPI, middleware, sahifalar
+  config.py          # sozlamalar va tariflar
+  models.py          # SQLAlchemy modellari
+  schemas.py         # Pydantic kontraktlar
+  security.py        # JWT, parol, Context, RBAC
+  crypto.py          # Telegram tokenini shifrlash
+  routers/           # auth, orgs, knowledge, products, orders, ...
+  services/          # agent, rag, embeddings, extract, chat, limits, ...
+  services/telegram_bot.py     # Telegram update ishlovi (webhook + polling)
+  services/telegram_polling.py # long polling runner
+  seed.py            # demo ma'lumotlar
+static/
+  js/dashboard.js    # SPA panel
+  js/widget.js       # embeddable chat
+templates/           # landing, auth, dashboard, demo
+tests/               # pytest integratsion testlar
+scripts/seed.py      # bazani qo'lda seed qilish
+```
+
+## API qisqacha
+
+Barcha biznes endpointlar `/api/v1` ostida. Avtorizatsiya: `Authorization: Bearer <access>`; faol tashkilot: `X-Org-Id` (yoki token ichidagi `org`).
+
+| Guruh | Endpointlar |
+| --- | --- |
+| Auth | `POST /auth/register`, `/login`, `/refresh`, `/logout`, `/forgot-password`, `/reset-password`, `GET /auth/me` |
+| Tashkilot | `GET/PATCH /orgs`, `GET/POST /orgs/members`, `PATCH/DELETE /orgs/members/{id}`, `GET/PUT /orgs/agent` |
+| Bilim bazasi | `POST /knowledge/upload`, `GET /knowledge`, `DELETE /knowledge/{id}`, `POST /knowledge/{id}/reindex`, `POST /knowledge/query` |
+| Mahsulotlar | `GET/POST /products`, `PATCH/DELETE /products/{id}` |
+| Buyurtmalar | `GET/POST /orders`, `GET /orders/{id}`, `PATCH /orders/{id}/status` |
+| Suhbatlar | `GET /conversations`, `GET /conversations/{id}`, `POST .../reply`, `.../handoff`, `.../resume-ai` |
+| Analitika | `GET /analytics/overview`, `GET /analytics/audit-logs` |
+| Billing | `GET /billing`, `POST /billing/subscribe`, `GET /billing/payments` |
+| Integratsiya | `GET/POST/DELETE /integrations/telegram`, `POST .../set-webhook`, `GET/PUT /integrations/widget` |
+| Public | `GET /public/widget/{key}/config`, `POST .../messages`, `GET .../history`, `GET /public/demo` |
+| Super Admin | `GET /admin/stats`, `GET /admin/orgs`, `PATCH /admin/orgs/{id}/plan` |
+
+## Production eslatmalari
+
+- `SECRET_KEY` almashtirilmasa startupda ogohlantirish chiqadi.
+- SQLite o'rniga PostgreSQL ishlatish tavsiya etiladi; migratsiyalar uchun Alembic qo'shilishi mumkin.
+- `PUBLIC_BASE_URL` HTTPS bo'lsa webhook, http bo'lsa long polling ishlatiladi (productionda HTTPS tavsiya etiladi).
+- Telegram tokenlari Fernet bilan shifrlangan holda saqlanadi.
+- Har bir muhim amal `audit_logs` jadvaliga yoziladi.
 ````
 
 ## `app/__init__.py`
@@ -82,6 +251,9 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 120
     max_upload_mb: int = 15
 
+    # None -> auto: polling when PUBLIC_BASE_URL is not https, webhook otherwise.
+    telegram_polling: bool | None = None
+
     @property
     def cors_list(self) -> list[str]:
         if not self.cors_origins or self.cors_origins.strip() == "*":
@@ -95,6 +267,16 @@ class Settings(BaseSettings):
     @property
     def embeddings_enabled(self) -> bool:
         return bool(self.llm_api_key)
+
+    @property
+    def telegram_polling_enabled(self) -> bool:
+        if self.telegram_polling is not None:
+            return self.telegram_polling
+        return not self.public_base_url.strip().lower().startswith("https://")
+
+    @property
+    def telegram_mode(self) -> str:
+        return "polling" if self.telegram_polling_enabled else "webhook"
 
 
 @lru_cache
@@ -253,6 +435,7 @@ from app.routers import (
     telegram,
 )
 from app.seed import seed_demo
+from app.services.telegram_polling import TelegramPoller
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -271,7 +454,14 @@ async def lifespan(_: FastAPI):
             logger.exception("Demo seed failed")
     if settings.env != "dev" and settings.secret_key.startswith("dev-secret"):
         logger.warning("SECRET_KEY production qiymatiga almashtirilmagan!")
+    poller: TelegramPoller | None = None
+    if settings.telegram_polling_enabled:
+        poller = TelegramPoller()
+        await poller.start()
+        logger.info("Telegram long polling rejimi yoqilgan")
     yield
+    if poller is not None:
+        await poller.stop()
 
 
 app = FastAPI(
@@ -360,6 +550,7 @@ async def health() -> dict:
         "version": "1.0.0",
         "llm_enabled": settings.llm_enabled,
         "embeddings": "openai" if settings.embeddings_enabled else "local",
+        "telegram_mode": settings.telegram_mode,
     }
 
 
@@ -1482,12 +1673,19 @@ async def get_telegram(
         )
     ).scalar_one_or_none()
     if integration is None:
-        return {"connected": False, "bot_username": "", "webhook_url": "", "active": False}
+        return {
+            "connected": False,
+            "bot_username": "",
+            "webhook_url": "",
+            "active": False,
+            "mode": settings.telegram_mode,
+        }
     return {
         "connected": True,
         "bot_username": integration.bot_username,
         "webhook_url": telegram.webhook_url(integration.webhook_secret),
         "active": integration.active,
+        "mode": settings.telegram_mode,
     }
 
 
@@ -1531,6 +1729,7 @@ async def connect_telegram(
         "bot_username": integration.bot_username,
         "webhook_url": telegram.webhook_url(integration.webhook_secret),
         "active": True,
+        "mode": settings.telegram_mode,
     }
 
 
@@ -1545,6 +1744,11 @@ async def set_telegram_webhook(
     ).scalar_one_or_none()
     if integration is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Telegram bot ulanmagan")
+    if settings.telegram_polling_enabled:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Long polling rejimi yoqilgan — webhook o'rnatish shart emas.",
+        )
     if not settings.public_base_url.startswith("https://"):
         raise HTTPException(
             status.HTTP_400_BAD_REQUEST,
@@ -2349,41 +2553,15 @@ async def demo_widget(db: AsyncSession = Depends(get_db)) -> dict:
 ````python
 from __future__ import annotations
 
-import logging
-
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.crypto import decrypt_secret
 from app.database import get_db
-from app.models import Conversation, Message, Organization, TelegramIntegration, utcnow
-from app.services import telegram
-from app.services.agent import get_agent_settings, greeting_text
-from app.services.chat import find_conversation, get_or_create_conversation, handle_message
-from app.services.limits import ensure_conversation_limit
+from app.models import TelegramIntegration
+from app.services.telegram_bot import process_update
 
-logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/telegram", tags=["telegram"])
-
-OPERATOR_TEXT = {
-    "uz": "Operatorimiz tez orada javob beradi. Iltimos, biroz kuting.",
-    "ru": "Наш оператор скоро ответит. Пожалуйста, подождите немного.",
-    "en": "Our operator will reply shortly. Please wait a moment.",
-}
-
-_seen_updates: dict[int, bool] = {}
-
-
-def _already_seen(update_id: int | None) -> bool:
-    if update_id is None:
-        return False
-    if update_id in _seen_updates:
-        return True
-    _seen_updates[update_id] = True
-    if len(_seen_updates) > 5000:
-        _seen_updates.clear()
-    return False
 
 
 @router.post("/webhook/{secret}")
@@ -2408,96 +2586,8 @@ async def webhook(
     if header_secret and header_secret != secret:
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Secret mos emas")
 
-    if _already_seen(update.get("update_id")):
-        return {"ok": True}
-
-    message = update.get("message") or update.get("edited_message") or {}
-    text = (message.get("text") or "").strip()
-    chat = message.get("chat") or {}
-    chat_id = chat.get("id")
-    if not text or chat_id is None:
-        return {"ok": True}
-
-    org = await db.get(Organization, integration.org_id)
-    if org is None:
-        return {"ok": True}
-    token = decrypt_secret(integration.token_encrypted)
-
-    sender = message.get("from") or {}
-    name = " ".join(
-        part for part in [sender.get("first_name"), sender.get("last_name")] if part
-    ).strip() or sender.get("username", "")
-
-    conversation = await find_conversation(db, org.id, "telegram", str(chat_id))
-    if conversation is None:
-        try:
-            await ensure_conversation_limit(db, org)
-        except HTTPException:
-            await _safe_send(token, chat_id, "Tarif limiti tugagan. Administratorga murojaat qiling.")
-            return {"ok": True}
-        conversation = await get_or_create_conversation(db, org, "telegram", str(chat_id), name)
-
-    if not conversation.ai_enabled:
-        db.add(
-            Message(
-                org_id=org.id,
-                conversation_id=conversation.id,
-                role="user",
-                content=text,
-                meta={"channel": "telegram", "chat_id": chat_id},
-            )
-        )
-        conversation.last_message_at = utcnow()
-        await db.commit()
-        await _safe_send(token, chat_id, OPERATOR_TEXT["uz"])
-        return {"ok": True}
-
-    if text in {"/start", "/help"}:
-        agent_settings = await get_agent_settings(db, org)
-        lang = (conversation.state or {}).get("lang") or agent_settings.language or "uz"
-        reply = greeting_text(org, agent_settings, lang)
-        db.add(
-            Message(
-                org_id=org.id,
-                conversation_id=conversation.id,
-                role="user",
-                content=text,
-                meta={"channel": "telegram", "chat_id": chat_id},
-            )
-        )
-        db.add(
-            Message(
-                org_id=org.id,
-                conversation_id=conversation.id,
-                role="assistant",
-                content=reply,
-                meta={"channel": "telegram"},
-            )
-        )
-        conversation.last_message_at = utcnow()
-        await db.commit()
-        await _safe_send(token, chat_id, reply)
-        return {"ok": True}
-
-    result = await handle_message(db, org, conversation, text, source="telegram")
-    await db.commit()
-
-    reply = result.text
-    if result.products and "—" not in reply:
-        lines = "\n".join(
-            f"• {p['name']} — {int(p['price']):,}".replace(",", " ") + " so'm"
-            for p in result.products[:3]
-        )
-        reply = f"{reply}\n\n{lines}"
-    await _safe_send(token, chat_id, reply)
+    await process_update(db, integration, update)
     return {"ok": True}
-
-
-async def _safe_send(token: str, chat_id: int | str, text: str) -> None:
-    try:
-        await telegram.send_message(token, chat_id, text)
-    except telegram.TelegramError as exc:
-        logger.warning("Telegram send failed: %s", exc)
 ````
 
 ## `app/schemas.py`
@@ -5506,10 +5596,12 @@ class TelegramError(RuntimeError):
     pass
 
 
-async def api_call(token: str, method: str, payload: dict | None = None) -> dict:
+async def api_call(
+    token: str, method: str, payload: dict | None = None, timeout: float = 20
+) -> dict | list:
     url = f"https://api.telegram.org/bot{token}/{method}"
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, json=payload or {})
     except httpx.HTTPError as exc:
         raise TelegramError(f"Telegram bilan aloqa xatosi: {exc}") from exc
@@ -5556,13 +5648,291 @@ async def delete_webhook(token: str) -> dict:
     return await api_call(token, "deleteWebhook", {"drop_pending_updates": True})
 
 
+async def get_updates(
+    token: str, offset: int | None = None, timeout: int = 25
+) -> list[dict]:
+    payload: dict = {"timeout": timeout, "allowed_updates": ["message"]}
+    if offset is not None:
+        payload["offset"] = offset
+    result = await api_call(token, "getUpdates", payload, timeout=timeout + 10)
+    return result if isinstance(result, list) else []
+
+
 def webhook_url(secret: str) -> str:
     return f"{settings.public_base_url.rstrip('/')}/api/v1/telegram/webhook/{secret}"
 ````
 
+## `app/services/telegram_bot.py`
+
+````python
+from __future__ import annotations
+
+import logging
+
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.crypto import decrypt_secret
+from app.models import Message, Organization, TelegramIntegration, utcnow
+from app.services import telegram
+from app.services.agent import get_agent_settings, greeting_text
+from app.services.chat import find_conversation, get_or_create_conversation, handle_message
+from app.services.limits import ensure_conversation_limit
+
+logger = logging.getLogger(__name__)
+
+OPERATOR_TEXT = {
+    "uz": "Operatorimiz tez orada javob beradi. Iltimos, biroz kuting.",
+    "ru": "Наш оператор скоро ответит. Пожалуйста, подождите немного.",
+    "en": "Our operator will reply shortly. Please wait a moment.",
+}
+
+_seen_updates: dict[int, bool] = {}
+
+
+def _already_seen(update_id: int | None) -> bool:
+    if update_id is None:
+        return False
+    if update_id in _seen_updates:
+        return True
+    _seen_updates[update_id] = True
+    if len(_seen_updates) > 5000:
+        _seen_updates.clear()
+    return False
+
+
+def _normalize_command(text: str) -> str:
+    if not text.startswith("/"):
+        return text
+    head, _, rest = text.partition(" ")
+    command = head.split("@", 1)[0].lower()
+    return f"{command} {rest}".strip() if rest else command
+
+
+async def process_update(
+    db: AsyncSession, integration: TelegramIntegration, update: dict
+) -> None:
+    if _already_seen(update.get("update_id")):
+        return
+
+    message = update.get("message") or update.get("edited_message") or {}
+    text = (message.get("text") or "").strip()
+    chat = message.get("chat") or {}
+    chat_id = chat.get("id")
+    if not text or chat_id is None:
+        return
+
+    org = await db.get(Organization, integration.org_id)
+    if org is None:
+        return
+    token = decrypt_secret(integration.token_encrypted)
+
+    sender = message.get("from") or {}
+    name = " ".join(
+        part for part in [sender.get("first_name"), sender.get("last_name")] if part
+    ).strip() or sender.get("username", "")
+
+    conversation = await find_conversation(db, org.id, "telegram", str(chat_id))
+    if conversation is None:
+        try:
+            await ensure_conversation_limit(db, org)
+        except HTTPException:
+            await _safe_send(token, chat_id, "Tarif limiti tugagan. Administratorga murojaat qiling.")
+            return
+        conversation = await get_or_create_conversation(db, org, "telegram", str(chat_id), name)
+
+    lang = (conversation.state or {}).get("lang") or "uz"
+    if not conversation.ai_enabled:
+        db.add(
+            Message(
+                org_id=org.id,
+                conversation_id=conversation.id,
+                role="user",
+                content=text,
+                meta={"channel": "telegram", "chat_id": chat_id},
+            )
+        )
+        conversation.last_message_at = utcnow()
+        await db.commit()
+        await _safe_send(token, chat_id, OPERATOR_TEXT.get(lang, OPERATOR_TEXT["uz"]))
+        return
+
+    command = _normalize_command(text)
+    if command in {"/start", "/help"}:
+        agent_settings = await get_agent_settings(db, org)
+        reply = greeting_text(org, agent_settings, lang)
+        db.add(
+            Message(
+                org_id=org.id,
+                conversation_id=conversation.id,
+                role="user",
+                content=text,
+                meta={"channel": "telegram", "chat_id": chat_id},
+            )
+        )
+        db.add(
+            Message(
+                org_id=org.id,
+                conversation_id=conversation.id,
+                role="assistant",
+                content=reply,
+                meta={"channel": "telegram"},
+            )
+        )
+        conversation.last_message_at = utcnow()
+        await db.commit()
+        await _safe_send(token, chat_id, reply)
+        return
+
+    result = await handle_message(db, org, conversation, text, source="telegram")
+    await db.commit()
+
+    reply = result.text
+    if result.products and "—" not in reply:
+        lines = "\n".join(
+            f"• {p['name']} — {int(p['price']):,}".replace(",", " ") + " so'm"
+            for p in result.products[:3]
+        )
+        reply = f"{reply}\n\n{lines}"
+    await _safe_send(token, chat_id, reply)
+
+
+async def _safe_send(token: str, chat_id: int | str, text: str) -> None:
+    try:
+        await telegram.send_message(token, chat_id, text)
+    except telegram.TelegramError as exc:
+        logger.warning("Telegram send failed: %s", exc)
+````
+
+## `app/services/telegram_polling.py`
+
+````python
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import logging
+
+from sqlalchemy import select
+
+from app.crypto import decrypt_secret
+from app.database import SessionLocal
+from app.models import TelegramIntegration
+from app.services import telegram, telegram_bot
+
+logger = logging.getLogger(__name__)
+
+SYNC_INTERVAL = 15
+RETRY_DELAY = 5
+
+
+def _fingerprint(integration: TelegramIntegration) -> str:
+    return hashlib.sha256(
+        f"{integration.token_encrypted}|{integration.active}".encode()
+    ).hexdigest()
+
+
+async def poll_bot_once(
+    integration_id: str, token: str, offset: int | None, timeout: int = 25
+) -> int | None:
+    updates = await telegram.get_updates(token, offset, timeout=timeout)
+    for update in updates:
+        update_id = update.get("update_id")
+        if isinstance(update_id, int):
+            offset = max(offset or 0, update_id) + 1
+        try:
+            async with SessionLocal() as db:
+                integration = await db.get(TelegramIntegration, integration_id)
+                if integration is None or not integration.active:
+                    return offset
+                if decrypt_secret(integration.token_encrypted) != token:
+                    return offset
+                await telegram_bot.process_update(db, integration, update)
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            logger.exception("Telegram update %s could not be processed", update_id)
+    return offset
+
+
+async def _poll_bot(integration_id: str, token: str) -> None:
+    try:
+        await telegram.delete_webhook(token)
+    except telegram.TelegramError as exc:
+        logger.warning("Telegram deleteWebhook failed: %s", exc)
+    logger.info("Telegram polling started for integration %s", integration_id)
+    offset: int | None = None
+    while True:
+        try:
+            offset = await poll_bot_once(integration_id, token, offset)
+        except telegram.TelegramError as exc:
+            logger.warning("Telegram getUpdates failed: %s", exc)
+            await asyncio.sleep(RETRY_DELAY)
+
+
+class TelegramPoller:
+    def __init__(self, sync_interval: float = SYNC_INTERVAL) -> None:
+        self.sync_interval = sync_interval
+        self._bots: dict[str, tuple[str, asyncio.Task]] = {}
+        self._runner: asyncio.Task | None = None
+
+    async def start(self) -> None:
+        if self._runner is not None:
+            return
+        await self.sync()
+        self._runner = asyncio.create_task(self._run())
+
+    async def stop(self) -> None:
+        if self._runner is not None:
+            self._runner.cancel()
+            await asyncio.gather(self._runner, return_exceptions=True)
+            self._runner = None
+        tasks = [task for _, task in self._bots.values()]
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+        self._bots.clear()
+
+    async def _run(self) -> None:
+        while True:
+            try:
+                await self.sync()
+            except asyncio.CancelledError:
+                raise
+            except Exception:
+                logger.exception("Telegram polling sync failed")
+            await asyncio.sleep(self.sync_interval)
+
+    async def sync(self) -> None:
+        async with SessionLocal() as db:
+            rows = (
+                await db.execute(
+                    select(TelegramIntegration).where(TelegramIntegration.active.is_(True))
+                )
+            ).scalars().all()
+            current = {row.id: row for row in rows}
+
+        for integration_id, row in current.items():
+            fingerprint = _fingerprint(row)
+            existing = self._bots.get(integration_id)
+            if existing and existing[0] == fingerprint:
+                continue
+            if existing:
+                existing[1].cancel()
+                await asyncio.gather(existing[1], return_exceptions=True)
+            token = decrypt_secret(row.token_encrypted)
+            task = asyncio.create_task(_poll_bot(integration_id, token))
+            self._bots[integration_id] = (fingerprint, task)
+
+        for integration_id in list(self._bots):
+            if integration_id not in current:
+                _, task = self._bots.pop(integration_id)
+                task.cancel()
+````
+
 ## `pytest.ini`
 
-````ini
+````text
 [pytest]
 testpaths = tests
 asyncio_mode = auto
@@ -5570,170 +5940,6 @@ asyncio_default_fixture_loop_scope = session
 asyncio_default_test_loop_scope = session
 filterwarnings =
     ignore::DeprecationWarning
-````
-
-## `README.md`
-
-````markdown
-# AI Sales Agent
-
-O'zbekiston bozori uchun ko'p tashkilotli (multi-tenant) AI sotuv platformasi: Telegram bot, sayt chat widgeti va to'liq SaaS boshqaruv paneli. AI hujjatlar (RAG) va mahsulot bazasi asosida javob beradi, buyurtma qabul qiladi, operatorga uzatadi.
-
-## Imkoniyatlar
-
-- **Autentifikatsiya** — email/parol, access + refresh token, parol tiklash, rollar (Super Admin, Owner, Manager, Operator).
-- **Tashkilotlar** — har bir ma'lumot `org_id` bilan izolyatsiya qilinadi; boshqa tashkilot resursi `404` qaytaradi.
-- **Bilim bazasi** — PDF, DOCX, TXT, CSV, MD yuklash, bo'limlarga asoslangan chunking, embedding, semantik + leksik qidiruv, manba iqtiboslari, qayta indekslash.
-- **AI agent** — ism/persona, UZ/RU/EN, byudjet va kategoriya bo'yicha mahsulot tanlash, narx/ombor tekshiruvi, bosqichma-bosqich buyurtma, operatorga handoff, noto'g'ri javobni aniqlash.
-- **Telegram** — token bilan ulash, webhook (secret header + dedupe), operator rejimi.
-- **Sayt widgeti** — Shadow DOM, rang/sarlavha sozlash, anonim tashrif buyuruvchi tarixi, `data-ai-widget` orqali embed.
-- **Mahsulot va buyurtmalar** — CRUD, qoldiq, buyurtma raqami, statuslar, bekor qilganda qoldiqni tiklash.
-- **Analitika** — suhbat, xabar, buyurtma, tushum, konversiya, kanallar va top mahsulotlar.
-- **Billing** — Starter / Pro / Business, oylik to'lov tarixi, limitlar (suhbat, hujjat, xodim).
-
-## Texnologiyalar
-
-FastAPI · SQLAlchemy 2 (async) · SQLite/aiosqlite · Pydantic v2 · JWT + bcrypt · Fernet · pypdf/python-docx · NumPy · vanilla JS SPA · pytest
-
-LLM kaliti bo'lmasa ham tizim to'liq ishlaydi: deterministik offline agent va lokal 384-o'lchamli hashing embeddinglar ishlatiladi. `LLM_API_KEY` qo'shilsa, OpenAI-mos chat + tool calling va `text-embedding-3-small` yoqiladi.
-
-## Tez boshlash (Windows)
-
-```bash
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-copy .env.example .env
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-Linux/macOS:
-
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-cp .env.example .env
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-```
-
-Birinchi ishga tushishda `data/app.db` yaratiladi va demo ma'lumotlar seed qilinadi.
-
-| Sahifa | Manzil |
-| --- | --- |
-| Landing | http://127.0.0.1:8000/ |
-| Kirish / ro'yxatdan o'tish | http://127.0.0.1:8000/login |
-| Boshqaruv paneli | http://127.0.0.1:8000/dashboard |
-| Demo do'kon + widget | http://127.0.0.1:8000/demo |
-| API hujjati | http://127.0.0.1:8000/api/docs |
-
-### Demo hisoblar
-
-| Rol | Email | Parol |
-| --- | --- | --- |
-| Owner (TechNova Store) | `demo@aisales.uz` | `Demo12345` |
-| Super Admin | `admin@aisales.uz` | `Admin12345` |
-
-Demo widget kaliti: `demo-store-widget`.
-
-## Sozlamalar (`.env`)
-
-| O'zgaruvchi | Tavsif |
-| --- | --- |
-| `SECRET_KEY` | JWT va token shifrlash kaliti (productionda ≥32 belgi) |
-| `DATABASE_URL` | `sqlite+aiosqlite:///./data/app.db` yoki PostgreSQL URL |
-| `PUBLIC_BASE_URL` | Widget va Telegram webhook uchun tashqi manzil (`https://...`) |
-| `LLM_API_KEY` | Bo'sh bo'lsa offline agent ishlaydi |
-| `LLM_BASE_URL`, `LLM_MODEL` | OpenAI-mos provayder |
-| `SEED_DEMO` | `false` qilinsa demo ma'lumot yozilmaydi |
-| `INGEST_SYNC` | `false` bo'lsa hujjat fonda indekslanadi |
-| `RATE_LIMIT_PER_MINUTE` | Public API uchun daqiqalik limit |
-| `MAX_UPLOAD_MB` | Fayl hajmi chegarasi |
-
-## Telegram botni ulash
-
-1. [@BotFather](https://t.me/BotFather) orqali bot yaratib, tokenni oling.
-2. Dashboard → **Integratsiyalar** → Telegram bo'limiga tokenni kiriting.
-3. Public HTTPS manzil kerak (lokalda ngrok):
-
-```bash
-ngrok http 8000
-```
-
-4. `.env` faylida `PUBLIC_BASE_URL=https://<ngrok-domen>` qilib serverni qayta ishga tushiring.
-5. **Webhookni o'rnatish** tugmasini bosing. Botga `/start` yozib tekshiring.
-
-Webhook: `POST /api/v1/telegram/webhook/{secret}`. `X-Telegram-Bot-Api-Secret-Token` noto'g'ri bo'lsa `403`, takroriy `update_id` e'tiborsiz qoldiriladi.
-
-## Widgetni saytga qo'shish
-
-Dashboard → **Integratsiyalar** → Widget bo'limidan kodni nusxalang:
-
-```html
-<script src="https://sizning-domen/static/js/widget.js" data-ai-widget="PUBLIC_KEY" defer></script>
-```
-
-Widget Shadow DOM ichida ishlaydi, sayt CSS'i bilan to'qnashmaydi. Dasturiy boshqaruv:
-
-```js
-AISalesWidget["PUBLIC_KEY"].open();
-AISalesWidget["PUBLIC_KEY"].prefill("Noutbuk kerak");
-```
-
-## Testlar
-
-```bash
-.venv\Scripts\python.exe -m pytest -q
-```
-
-17 ta integratsion test alohida `data/test_app.db` bazasida ishlaydi (demo baza tegmaydi): autentifikatsiya/refresh, parol tiklash, RBAC, tashkilotlar izolyatsiyasi, bilim bazasi yuklash/qidirish/o'chirish, offline agent (byudjet, narx, buyurtma, handoff), widget, Telegram webhook va billing limitlari.
-
-## Loyiha tuzilishi
-
-```
-app/
-  main.py            # FastAPI, middleware, sahifalar
-  config.py          # sozlamalar va tariflar
-  models.py          # SQLAlchemy modellari
-  schemas.py         # Pydantic kontraktlar
-  security.py        # JWT, parol, Context, RBAC
-  crypto.py          # Telegram tokenini shifrlash
-  routers/           # auth, orgs, knowledge, products, orders, ...
-  services/          # agent, rag, embeddings, extract, chat, limits, ...
-  seed.py            # demo ma'lumotlar
-static/
-  js/dashboard.js    # SPA panel
-  js/widget.js       # embeddable chat
-templates/           # landing, auth, dashboard, demo
-tests/               # pytest integratsion testlar
-scripts/seed.py      # bazani qo'lda seed qilish
-```
-
-## API qisqacha
-
-Barcha biznes endpointlar `/api/v1` ostida. Avtorizatsiya: `Authorization: Bearer <access>`; faol tashkilot: `X-Org-Id` (yoki token ichidagi `org`).
-
-| Guruh | Endpointlar |
-| --- | --- |
-| Auth | `POST /auth/register`, `/login`, `/refresh`, `/logout`, `/forgot-password`, `/reset-password`, `GET /auth/me` |
-| Tashkilot | `GET/PATCH /orgs`, `GET/POST /orgs/members`, `PATCH/DELETE /orgs/members/{id}`, `GET/PUT /orgs/agent` |
-| Bilim bazasi | `POST /knowledge/upload`, `GET /knowledge`, `DELETE /knowledge/{id}`, `POST /knowledge/{id}/reindex`, `POST /knowledge/query` |
-| Mahsulotlar | `GET/POST /products`, `PATCH/DELETE /products/{id}` |
-| Buyurtmalar | `GET/POST /orders`, `GET /orders/{id}`, `PATCH /orders/{id}/status` |
-| Suhbatlar | `GET /conversations`, `GET /conversations/{id}`, `POST .../reply`, `.../handoff`, `.../resume-ai` |
-| Analitika | `GET /analytics/overview`, `GET /analytics/audit-logs` |
-| Billing | `GET /billing`, `POST /billing/subscribe`, `GET /billing/payments` |
-| Integratsiya | `GET/POST/DELETE /integrations/telegram`, `POST .../set-webhook`, `GET/PUT /integrations/widget` |
-| Public | `GET /public/widget/{key}/config`, `POST .../messages`, `GET .../history`, `GET /public/demo` |
-| Super Admin | `GET /admin/stats`, `GET /admin/orgs`, `PATCH /admin/orgs/{id}/plan` |
-
-## Production eslatmalari
-
-- `SECRET_KEY` almashtirilmasa startupda ogohlantirish chiqadi.
-- SQLite o'rniga PostgreSQL ishlatish tavsiya etiladi; migratsiyalar uchun Alembic qo'shilishi mumkin.
-- `PUBLIC_BASE_URL` HTTPS bo'lishi shart (Telegram webhook).
-- Telegram tokenlari Fernet bilan shifrlangan holda saqlanadi.
-- Har bir muhim amal `audit_logs` jadvaliga yoziladi.
 ````
 
 ## `requirements.txt`
@@ -7543,7 +7749,7 @@ td .sub { color: var(--muted-2); font-size: 11.5px; margin-top: 2px; }
       '<div class="stack" style="gap:16px">' +
       '<div class="integration"><div class="ico">1️⃣</div><div><h3>BotFather</h3><p>Telegramda @BotFather orqali yangi bot yarating va tokenni oling.</p></div></div>' +
       '<div class="integration"><div class="ico">2️⃣</div><div><h3>Tokenni ulang</h3><p>Token shifrlangan holda saqlanadi. Bot username avtomatik aniqlanadi.</p></div></div>' +
-      '<div class="integration"><div class="ico">3️⃣</div><div><h3>Webhook</h3><p>PUBLIC_BASE_URL https bo\'lsa (ngrok yoki domen), webhook bir tugma bilan o\'rnatiladi.</p></div></div>' +
+      '<div class="integration"><div class="ico">3️⃣</div><div><h3>Avtomatik ulanish</h3><p>Lokalda long polling avtomatik yoqiladi. PUBLIC_BASE_URL https bo\'lsa webhook rejimi ishlatiladi.</p></div></div>' +
       '<div class="integration"><div class="ico">4️⃣</div><div><h3>Widget</h3><p>Script qatorini saytingizga qo\'ying — chat o\'ng pastda paydo bo\'ladi.</p></div></div>' +
       "</div></div></div>";
     await Promise.all([loadTelegram(), loadWidget()]);
@@ -7555,7 +7761,7 @@ td .sub { color: var(--muted-2); font-size: 11.5px; margin-top: 2px; }
       var data = await api("/integrations/telegram");
       if (!data.connected) {
         card.innerHTML = '<div class="integration"><div class="ico">✈️</div><div style="flex:1"><h3>Telegram bot</h3>' +
-          '<p>@BotFather tokenini kiriting. Bot webhook orqali xabarlarni qabul qiladi.</p></div></div>' +
+          '<p>@BotFather tokenini kiriting. Token ulangach bot avtomatik ishga tushadi.</p></div></div>' +
           '<div class="field" style="margin-top:14px"><label>Bot token</label>' +
           '<input class="input mono" id="tg-token" placeholder="123456789:AA..."></div>' +
           '<button class="btn primary" id="tg-connect" style="margin-top:12px">Ulash</button>' +
@@ -7573,22 +7779,29 @@ td .sub { color: var(--muted-2); font-size: 11.5px; margin-top: 2px; }
         });
         return;
       }
+      var polling = data.mode === "polling";
       card.innerHTML = '<div class="integration"><div class="ico">✈️</div><div style="flex:1"><h3>@' +
-        h(data.bot_username) + " " + (data.active ? badge("Ulangan", "") : badge("Nofaol", "amber")) +
-        '</h3><p>Webhook URL quyida. Uni Telegramga o\'rnatish uchun tugmani bosing.</p></div></div>' +
-        '<div class="code-box" style="margin-top:14px">' + h(data.webhook_url) + "</div>" +
+        h(data.bot_username) + " " + badge(polling ? "Polling faol" : "Webhook", "") +
+        '</h3><p>' + (polling
+          ? "Lokal long polling rejimi faol — botga Telegramda yozing, AI avtomatik javob beradi."
+          : "Webhook URL quyida. Uni Telegramga o'rnatish uchun tugmani bosing.") +
+        '</p></div></div>' +
+        (polling
+          ? '<div class="small muted" style="margin-top:10px">Bot ilova ishlab turganda javob beradi. Ommaviy serverda PUBLIC_BASE_URL ni https qiling — webhook rejimi avtomatik yoqiladi.</div>'
+          : '<div class="code-box" style="margin-top:14px">' + h(data.webhook_url) + "</div>") +
         '<div class="row" style="margin-top:12px">' +
-        '<button class="btn primary" id="tg-webhook">Webhookni o\'rnatish</button>' +
-        '<button class="btn danger" id="tg-disconnect">Uzish</button></div>' +
-        '<div class="small muted" style="margin-top:10px">Webhook faqat https manzil bilan ishlaydi. Lokal test uchun: <span class="mono">ngrok http 8000</span></div>';
-      $("#tg-webhook").addEventListener("click", async function (event) {
-        event.currentTarget.disabled = true;
-        try {
-          var result = await api("/integrations/telegram/set-webhook", { method: "POST" });
-          toast("Webhook o'rnatildi");
-        } catch (error) { toast(error.message, true); }
-        finally { event.currentTarget.disabled = false; }
-      });
+        (polling ? "" : '<button class="btn primary" id="tg-webhook">Webhookni o\'rnatish</button>') +
+        '<button class="btn danger" id="tg-disconnect">Uzish</button></div>';
+      if (!polling) {
+        $("#tg-webhook").addEventListener("click", async function (event) {
+          event.currentTarget.disabled = true;
+          try {
+            await api("/integrations/telegram/set-webhook", { method: "POST" });
+            toast("Webhook o'rnatildi");
+          } catch (error) { toast(error.message, true); }
+          finally { event.currentTarget.disabled = false; }
+        });
+      }
       $("#tg-disconnect").addEventListener("click", function () {
         confirmModal("Botni uzish", "Webhook o'chiriladi va bot integratsiyasi o'chiriladi.", async function () {
           await api("/integrations/telegram", { method: "DELETE" });
@@ -10027,6 +10240,70 @@ async def test_telegram_connect_webhook_and_disconnect(client, monkeypatch):
 
     status = await client.get("/api/v1/integrations/telegram", headers=session["headers"])
     assert status.json()["connected"] is False
+
+
+async def test_telegram_polling_processes_updates(client, monkeypatch):
+    session = await register_org(client, "tg-poll")
+    sent: list[tuple[object, str]] = []
+
+    async def fake_get_me(token: str) -> dict:
+        return {"id": 2, "username": "poll_sales_bot"}
+
+    async def fake_send(token: str, chat_id, text: str) -> dict:
+        sent.append((chat_id, text))
+        return {"message_id": len(sent)}
+
+    monkeypatch.setattr("app.services.telegram.get_me", fake_get_me)
+    monkeypatch.setattr("app.services.telegram.send_message", fake_send)
+
+    connected = await client.post(
+        "/api/v1/integrations/telegram",
+        headers=session["headers"],
+        json={"token": BOT_TOKEN},
+    )
+    assert connected.status_code == 200, connected.text
+    assert connected.json()["mode"] in {"polling", "webhook"}
+
+    from sqlalchemy import select
+
+    from app.database import SessionLocal
+    from app.models import TelegramIntegration
+    from app.services.telegram_polling import poll_bot_once
+
+    async with SessionLocal() as db:
+        integration = (
+            await db.execute(
+                select(TelegramIntegration).where(
+                    TelegramIntegration.org_id == session["org"]["id"]
+                )
+            )
+        ).scalar_one()
+        integration_id = integration.id
+
+    update_id = uuid.uuid4().int % 2_000_000_000
+
+    async def fake_get_updates(token: str, offset=None, timeout: int = 25) -> list[dict]:
+        assert token == BOT_TOKEN
+        return [
+            {
+                "update_id": update_id,
+                "message": {
+                    "text": "/start@poll_sales_bot",
+                    "chat": {"id": 888002},
+                    "from": {"first_name": "Dilnoza"},
+                },
+            }
+        ]
+
+    monkeypatch.setattr("app.services.telegram.get_updates", fake_get_updates)
+
+    offset = await poll_bot_once(integration_id, BOT_TOKEN, None, timeout=0)
+    assert offset == update_id + 1
+    assert sent and sent[-1][0] == 888002
+    assert "Assalomu" in sent[-1][1]
+
+    await poll_bot_once(integration_id, BOT_TOKEN, offset, timeout=0)
+    assert len(sent) == 1
 ````
 
 ## `tests/test_tenancy.py`

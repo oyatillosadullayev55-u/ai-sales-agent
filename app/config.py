@@ -34,6 +34,9 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = 120
     max_upload_mb: int = 15
 
+    # None -> auto: polling when PUBLIC_BASE_URL is not https, webhook otherwise.
+    telegram_polling: bool | None = None
+
     @property
     def cors_list(self) -> list[str]:
         if not self.cors_origins or self.cors_origins.strip() == "*":
@@ -47,6 +50,16 @@ class Settings(BaseSettings):
     @property
     def embeddings_enabled(self) -> bool:
         return bool(self.llm_api_key)
+
+    @property
+    def telegram_polling_enabled(self) -> bool:
+        if self.telegram_polling is not None:
+            return self.telegram_polling
+        return not self.public_base_url.strip().lower().startswith("https://")
+
+    @property
+    def telegram_mode(self) -> str:
+        return "polling" if self.telegram_polling_enabled else "webhook"
 
 
 @lru_cache

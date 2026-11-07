@@ -97,3 +97,67 @@ async def test_telegram_connect_webhook_and_disconnect(client, monkeypatch):
 
     status = await client.get("/api/v1/integrations/telegram", headers=session["headers"])
     assert status.json()["connected"] is False
+
+
+async def test_telegram_polling_processes_updates(client, monkeypatch):
+    session = await register_org(client, "tg-poll")
+    sent: list[tuple[object, str]] = []
+
+    async def fake_get_me(token: str) -> dict:
+        return {"id": 2, "username": "poll_sales_bot"}
+
+    async def fake_send(token: str, chat_id, text: str) -> dict:
+        sent.append((chat_id, text))
+        return {"message_id": len(sent)}
+
+    monkeypatch.setattr("app.services.telegram.get_me", fake_get_me)
+    monkeypatch.setattr("app.services.telegram.send_message", fake_send)
+
+    connected = await client.post(
+        "/api/v1/integrations/telegram",
+        headers=session["headers"],
+        json={"token": BOT_TOKEN},
+    )
+    assert connected.status_code == 200, connected.text
+    assert connected.json()["mode"] in {"polling", "webhook"}
+
+    from sqlalchemy import select
+
+    from app.database import SessionLocal
+    from app.models import TelegramIntegration
+    from app.services.telegram_polling import poll_bot_once
+
+    async with SessionLocal() as db:
+        integration = (
+            await db.execute(
+                select(TelegramIntegration).where(
+                    TelegramIntegration.org_id == session["org"]["id"]
+                )
+            )
+        ).scalar_one()
+        integration_id = integration.id
+
+    update_id = uuid.uuid4().int % 2_000_000_000
+
+    async def fake_get_updates(token: str, offset=None, timeout: int = 25) -> list[dict]:
+        assert token == BOT_TOKEN
+        return [
+            {
+                "update_id": update_id,
+                "message": {
+                    "text": "/start@poll_sales_bot",
+                    "chat": {"id": 888002},
+                    "from": {"first_name": "Dilnoza"},
+                },
+            }
+        ]
+
+    monkeypatch.setattr("app.services.telegram.get_updates", fake_get_updates)
+
+    offset = await poll_bot_once(integration_id, BOT_TOKEN, None, timeout=0)
+    assert offset == update_id + 1
+    assert sent and sent[-1][0] == 888002
+    assert "Assalomu" in sent[-1][1]
+
+    await poll_bot_once(integration_id, BOT_TOKEN, offset, timeout=0)
+    assert len(sent) == 1

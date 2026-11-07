@@ -13,10 +13,12 @@ class TelegramError(RuntimeError):
     pass
 
 
-async def api_call(token: str, method: str, payload: dict | None = None) -> dict:
+async def api_call(
+    token: str, method: str, payload: dict | None = None, timeout: float = 20
+) -> dict | list:
     url = f"https://api.telegram.org/bot{token}/{method}"
     try:
-        async with httpx.AsyncClient(timeout=20) as client:
+        async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.post(url, json=payload or {})
     except httpx.HTTPError as exc:
         raise TelegramError(f"Telegram bilan aloqa xatosi: {exc}") from exc
@@ -61,6 +63,16 @@ async def set_webhook(token: str, url: str, secret: str) -> dict:
 
 async def delete_webhook(token: str) -> dict:
     return await api_call(token, "deleteWebhook", {"drop_pending_updates": True})
+
+
+async def get_updates(
+    token: str, offset: int | None = None, timeout: int = 25
+) -> list[dict]:
+    payload: dict = {"timeout": timeout, "allowed_updates": ["message"]}
+    if offset is not None:
+        payload["offset"] = offset
+    result = await api_call(token, "getUpdates", payload, timeout=timeout + 10)
+    return result if isinstance(result, list) else []
 
 
 def webhook_url(secret: str) -> str:

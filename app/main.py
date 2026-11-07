@@ -30,6 +30,7 @@ from app.routers import (
     telegram,
 )
 from app.seed import seed_demo
+from app.services.telegram_polling import TelegramPoller
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
@@ -48,7 +49,14 @@ async def lifespan(_: FastAPI):
             logger.exception("Demo seed failed")
     if settings.env != "dev" and settings.secret_key.startswith("dev-secret"):
         logger.warning("SECRET_KEY production qiymatiga almashtirilmagan!")
+    poller: TelegramPoller | None = None
+    if settings.telegram_polling_enabled:
+        poller = TelegramPoller()
+        await poller.start()
+        logger.info("Telegram long polling rejimi yoqilgan")
     yield
+    if poller is not None:
+        await poller.stop()
 
 
 app = FastAPI(
@@ -137,6 +145,7 @@ async def health() -> dict:
         "version": "1.0.0",
         "llm_enabled": settings.llm_enabled,
         "embeddings": "openai" if settings.embeddings_enabled else "local",
+        "telegram_mode": settings.telegram_mode,
     }
 
 

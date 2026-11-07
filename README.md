@@ -67,7 +67,8 @@ Demo widget kaliti: `demo-store-widget`.
 | --- | --- |
 | `SECRET_KEY` | JWT va token shifrlash kaliti (productionda ≥32 belgi) |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./data/app.db` yoki PostgreSQL URL |
-| `PUBLIC_BASE_URL` | Widget va Telegram webhook uchun tashqi manzil (`https://...`) |
+| `PUBLIC_BASE_URL` | Widget kodi va Telegram webhook uchun tashqi manzil (`https://...`) |
+| `TELEGRAM_POLLING` | Bo'sh bo'lsa avtomatik: http manzilda polling, https manzilda webhook |
 | `LLM_API_KEY` | Bo'sh bo'lsa offline agent ishlaydi |
 | `LLM_BASE_URL`, `LLM_MODEL` | OpenAI-mos provayder |
 | `SEED_DEMO` | `false` qilinsa demo ma'lumot yozilmaydi |
@@ -77,18 +78,16 @@ Demo widget kaliti: `demo-store-widget`.
 
 ## Telegram botni ulash
 
-1. [@BotFather](https://t.me/BotFather) orqali bot yaratib, tokenni oling.
+1. [@BotFather](https://t.me/BotFather) orqali `/newbot` bilan bot yarating va tokenni oling.
 2. Dashboard → **Integratsiyalar** → Telegram bo'limiga tokenni kiriting.
-3. Public HTTPS manzil kerak (lokalda ngrok):
+3. Token ulangach bot avtomatik ishga tushadi:
+   - **Lokal (default)** — `PUBLIC_BASE_URL` http bo'lsa long polling yoqiladi; ngrok shart emas, `uvicorn` ishlab turishi kifoya.
+   - **Production** — `PUBLIC_BASE_URL=https://domen` bo'lsa webhook rejimi ishlatiladi; **Webhookni o'rnatish** tugmasini bosing.
+4. Telegramda botga `/start` yozib tekshiring.
 
-```bash
-ngrok http 8000
-```
+Rejimni majburan tanlash: `TELEGRAM_POLLING=true` (polling) yoki `false` (webhook).
 
-4. `.env` faylida `PUBLIC_BASE_URL=https://<ngrok-domen>` qilib serverni qayta ishga tushiring.
-5. **Webhookni o'rnatish** tugmasini bosing. Botga `/start` yozib tekshiring.
-
-Webhook: `POST /api/v1/telegram/webhook/{secret}`. `X-Telegram-Bot-Api-Secret-Token` noto'g'ri bo'lsa `403`, takroriy `update_id` e'tiborsiz qoldiriladi.
+Webhook: `POST /api/v1/telegram/webhook/{secret}`. `X-Telegram-Bot-Api-Secret-Token` noto'g'ri bo'lsa `403`, takroriy `update_id` e'tiborsiz qoldiriladi. Polling rejimida `getUpdates` ishlatiladi, webhook avtomatik o'chiriladi.
 
 ## Widgetni saytga qo'shish
 
@@ -111,7 +110,7 @@ AISalesWidget["PUBLIC_KEY"].prefill("Noutbuk kerak");
 .venv\Scripts\python.exe -m pytest -q
 ```
 
-17 ta integratsion test alohida `data/test_app.db` bazasida ishlaydi (demo baza tegmaydi): autentifikatsiya/refresh, parol tiklash, RBAC, tashkilotlar izolyatsiyasi, bilim bazasi yuklash/qidirish/o'chirish, offline agent (byudjet, narx, buyurtma, handoff), widget, Telegram webhook va billing limitlari.
+18 ta integratsion test alohida `data/test_app.db` bazasida ishlaydi (demo baza tegmaydi): autentifikatsiya/refresh, parol tiklash, RBAC, tashkilotlar izolyatsiyasi, bilim bazasi yuklash/qidirish/o'chirish, offline agent (byudjet, narx, buyurtma, handoff), widget, Telegram webhook/polling va billing limitlari.
 
 ## Loyiha tuzilishi
 
@@ -125,6 +124,8 @@ app/
   crypto.py          # Telegram tokenini shifrlash
   routers/           # auth, orgs, knowledge, products, orders, ...
   services/          # agent, rag, embeddings, extract, chat, limits, ...
+  services/telegram_bot.py     # Telegram update ishlovi (webhook + polling)
+  services/telegram_polling.py # long polling runner
   seed.py            # demo ma'lumotlar
 static/
   js/dashboard.js    # SPA panel
@@ -156,6 +157,6 @@ Barcha biznes endpointlar `/api/v1` ostida. Avtorizatsiya: `Authorization: Beare
 
 - `SECRET_KEY` almashtirilmasa startupda ogohlantirish chiqadi.
 - SQLite o'rniga PostgreSQL ishlatish tavsiya etiladi; migratsiyalar uchun Alembic qo'shilishi mumkin.
-- `PUBLIC_BASE_URL` HTTPS bo'lishi shart (Telegram webhook).
+- `PUBLIC_BASE_URL` HTTPS bo'lsa webhook, http bo'lsa long polling ishlatiladi (productionda HTTPS tavsiya etiladi).
 - Telegram tokenlari Fernet bilan shifrlangan holda saqlanadi.
 - Har bir muhim amal `audit_logs` jadvaliga yoziladi.

@@ -1118,7 +1118,7 @@
       '<div class="stack" style="gap:16px">' +
       '<div class="integration"><div class="ico">1️⃣</div><div><h3>BotFather</h3><p>Telegramda @BotFather orqali yangi bot yarating va tokenni oling.</p></div></div>' +
       '<div class="integration"><div class="ico">2️⃣</div><div><h3>Tokenni ulang</h3><p>Token shifrlangan holda saqlanadi. Bot username avtomatik aniqlanadi.</p></div></div>' +
-      '<div class="integration"><div class="ico">3️⃣</div><div><h3>Webhook</h3><p>PUBLIC_BASE_URL https bo\'lsa (ngrok yoki domen), webhook bir tugma bilan o\'rnatiladi.</p></div></div>' +
+      '<div class="integration"><div class="ico">3️⃣</div><div><h3>Avtomatik ulanish</h3><p>Lokalda long polling avtomatik yoqiladi. PUBLIC_BASE_URL https bo\'lsa webhook rejimi ishlatiladi.</p></div></div>' +
       '<div class="integration"><div class="ico">4️⃣</div><div><h3>Widget</h3><p>Script qatorini saytingizga qo\'ying — chat o\'ng pastda paydo bo\'ladi.</p></div></div>' +
       "</div></div></div>";
     await Promise.all([loadTelegram(), loadWidget()]);
@@ -1130,7 +1130,7 @@
       var data = await api("/integrations/telegram");
       if (!data.connected) {
         card.innerHTML = '<div class="integration"><div class="ico">✈️</div><div style="flex:1"><h3>Telegram bot</h3>' +
-          '<p>@BotFather tokenini kiriting. Bot webhook orqali xabarlarni qabul qiladi.</p></div></div>' +
+          '<p>@BotFather tokenini kiriting. Token ulangach bot avtomatik ishga tushadi.</p></div></div>' +
           '<div class="field" style="margin-top:14px"><label>Bot token</label>' +
           '<input class="input mono" id="tg-token" placeholder="123456789:AA..."></div>' +
           '<button class="btn primary" id="tg-connect" style="margin-top:12px">Ulash</button>' +
@@ -1148,22 +1148,29 @@
         });
         return;
       }
+      var polling = data.mode === "polling";
       card.innerHTML = '<div class="integration"><div class="ico">✈️</div><div style="flex:1"><h3>@' +
-        h(data.bot_username) + " " + (data.active ? badge("Ulangan", "") : badge("Nofaol", "amber")) +
-        '</h3><p>Webhook URL quyida. Uni Telegramga o\'rnatish uchun tugmani bosing.</p></div></div>' +
-        '<div class="code-box" style="margin-top:14px">' + h(data.webhook_url) + "</div>" +
+        h(data.bot_username) + " " + badge(polling ? "Polling faol" : "Webhook", "") +
+        '</h3><p>' + (polling
+          ? "Lokal long polling rejimi faol — botga Telegramda yozing, AI avtomatik javob beradi."
+          : "Webhook URL quyida. Uni Telegramga o'rnatish uchun tugmani bosing.") +
+        '</p></div></div>' +
+        (polling
+          ? '<div class="small muted" style="margin-top:10px">Bot ilova ishlab turganda javob beradi. Ommaviy serverda PUBLIC_BASE_URL ni https qiling — webhook rejimi avtomatik yoqiladi.</div>'
+          : '<div class="code-box" style="margin-top:14px">' + h(data.webhook_url) + "</div>") +
         '<div class="row" style="margin-top:12px">' +
-        '<button class="btn primary" id="tg-webhook">Webhookni o\'rnatish</button>' +
-        '<button class="btn danger" id="tg-disconnect">Uzish</button></div>' +
-        '<div class="small muted" style="margin-top:10px">Webhook faqat https manzil bilan ishlaydi. Lokal test uchun: <span class="mono">ngrok http 8000</span></div>';
-      $("#tg-webhook").addEventListener("click", async function (event) {
-        event.currentTarget.disabled = true;
-        try {
-          var result = await api("/integrations/telegram/set-webhook", { method: "POST" });
-          toast("Webhook o'rnatildi");
-        } catch (error) { toast(error.message, true); }
-        finally { event.currentTarget.disabled = false; }
-      });
+        (polling ? "" : '<button class="btn primary" id="tg-webhook">Webhookni o\'rnatish</button>') +
+        '<button class="btn danger" id="tg-disconnect">Uzish</button></div>';
+      if (!polling) {
+        $("#tg-webhook").addEventListener("click", async function (event) {
+          event.currentTarget.disabled = true;
+          try {
+            await api("/integrations/telegram/set-webhook", { method: "POST" });
+            toast("Webhook o'rnatildi");
+          } catch (error) { toast(error.message, true); }
+          finally { event.currentTarget.disabled = false; }
+        });
+      }
       $("#tg-disconnect").addEventListener("click", function () {
         confirmModal("Botni uzish", "Webhook o'chiriladi va bot integratsiyasi o'chiriladi.", async function () {
           await api("/integrations/telegram", { method: "DELETE" });
